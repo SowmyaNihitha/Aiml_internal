@@ -1,43 +1,37 @@
-# Define map: who borders whom
-neighbors = {
-    'WA': ['NT', 'SA'],
-    'NT': ['WA', 'SA', 'QLD'],
-    'SA': ['WA', 'NT', 'QLD', 'NSW', 'VIC'],
-    'QLD': ['NT', 'SA', 'NSW'],
-    'NSW': ['QLD', 'SA', 'VIC'],
-    'VIC': ['SA', 'NSW'],
-    'TAS': []
+graph = {
+    'A': ['B', 'C', 'D'],
+    'B': ['A', 'C', 'E'],
+    'C': ['A', 'B', 'D', 'E'],
+    'D': ['A', 'C', 'E'],
+    'E': ['B', 'C', 'D']
 }
-
-# Possible colors
+# Available colors
 colors = ['Red', 'Green', 'Blue']
+# Store the color assigned to each region
+assignment = {}
 
-def is_valid(state, region, color):
-    for neighbor in neighbors[region]:
-        if neighbor in state and state[neighbor] == color:
+def is_safe(region, color):
+    for neighbor in graph[region]:
+        if neighbor in assignment and assignment[neighbor] == color:
             return False
     return True
 
-def solve(state, regions):
-    if len(state) == len(regions):
-        return state
-
-    region = [r for r in regions if r not in state][0]
-
+def backtrack(region_list, index=0):
+    if index == len(region_list):
+        return True  # All regions are assigned
+    
+    region = region_list[index]
     for color in colors:
-        if is_valid(state, region, color):
-            state[region] = color
-            result = solve(state, regions)
-            if result:
-                return result
-            del state[region]  # backtrack
-    return None
+        if is_safe(region, color):
+            assignment[region] = color
+            if backtrack(region_list, index + 1):
+                return True
+            del assignment[region]  # backtrack
+    return False
 
-# Run
-regions = list(neighbors.keys())
-solution = solve({}, regions)
-
-if solution:
-    print("Solution:", solution)
+# Run the algorithm
+region_list = list(graph.keys())
+if backtrack(region_list):
+    print("Color assignment:", assignment)
 else:
     print("No solution found.")
