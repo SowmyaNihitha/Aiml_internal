@@ -1,48 +1,36 @@
 from collections import deque
-import math
+from math import gcd
 
-def minSteps(m, n, d):
-    if d > max(m, n) or d % math.gcd(m, n) != 0:
-        return "Can't obtain the required state"
+def water_jug(m, n, d):
+    if d > max(m, n) or d % gcd(m, n) != 0:
+        return "Not possible"
 
-    q = deque([(0, 0, 0)])  # (jug1, jug2, steps)
-    visited = set([(0, 0)])  # Store visited states
-    prev_state = {}  # Store previous states for path reconstruction
+    visited = set()
+    q = deque([((0, 0), [])])
 
     while q:
-        jug1, jug2, steps = q.popleft()
+        (a, b), path = q.popleft()
+        if a == d or b == d:
+            path.append((a, b))
+            for step in path:
+                print(step)
+            return f"Steps: {len(path) - 1}"
 
-        # If we reach the target amount in either jug
-        if jug1 == d or jug2 == d:
-            path = []
-            while (jug1, jug2) in prev_state:
-                path.append((jug1, jug2))
-                jug1, jug2 = prev_state[(jug1, jug2)]
-            path.append((0, 0))
-            path.reverse()
+        if (a, b) in visited:
+            continue
+        visited.add((a, b))
 
-            print("Steps to reach the target state:")
-            for state in path:
-                print(state)
-            return steps
-
-        # List of possible actions
-        actions = [
-            (m, jug2),   # Fill jug1
-            (jug1, n),   # Fill jug2
-            (0, jug2),   # Empty jug1
-            (jug1, 0),   # Empty jug2
-            (jug1 - min(jug1, n - jug2), jug2 + min(jug1, n - jug2)),  # Pour jug1 → jug2
-            (jug1 + min(jug2, m - jug1), jug2 - min(jug2, m - jug1))   # Pour jug2 → jug1
+        # Possible next moves
+        moves = [
+            (m, b), (a, n), (0, b), (a, 0),
+            (a - min(a, n - b), b + min(a, n - b)),  # a → b
+            (a + min(b, m - a), b - min(b, m - a))   # b → a
         ]
 
-        for new_state in actions:
-            if new_state not in visited:
-                visited.add(new_state)
-                q.append((*new_state, steps + 1))
-                prev_state[new_state] = (jug1, jug2)  # Store parent state
+        for new_state in moves:
+            q.append((new_state, path + [(a, b)]))
 
-    return "No solution found"
+    return "No solution"
 
-# Example Usage
-print("Minimum steps:", minSteps(4, 3, 2))
+# Example usage
+print(water_jug(4, 3, 2))
